@@ -9,9 +9,9 @@ export class RegisterDto {
 
 	@ApiProperty({ example: 'password123' })
 	@MinLength(6)
-  password: string;
+  	password: string;
 
 	@ApiProperty({ example: 'Some dude' })
 	@IsNotEmpty()
-  nickname: string;
+  	nickname: string;
 }

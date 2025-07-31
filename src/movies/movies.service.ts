@@ -1,0 +1,69 @@
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Movie } from './entities/movie.entity';
+import { Repository } from 'typeorm';
+import { CreateMovieDto } from './dto/create-movie.dto';
+
+@Injectable()
+export class MoviesService {
+    constructor(
+        private readonly httpService: HttpService,
+        private readonly configSrvice: ConfigService,
+        @InjectRepository(Movie)
+        private readonly movieRepository: Repository<Movie>
+    ) {}
+
+    async searchMovies(title: string): Promise<any> {
+        const apiKey = this.configSrvice.get<string>('KMDB_API_KEY');
+        const url = `http://api.koreafilm.or.kr/openapi-data2/wisenut/search_api/search_json2.jsp?collection=kmdb_new2&detail=Y&query=${encodeURIComponent(title)}&ServiceKey=${apiKey}`;
+
+        try {
+            const response = await firstValueFrom(
+                this.httpService.get(url)
+            );
+            if (response.status !== 200) {
+                throw new Error(`Failed to fetch movies: ${response.statusText}`);
+            }
+            const results = response.data?.Data?.[0]?.Result ?? [];
+            return results.map(movie => ({
+                kmdbId: movie.kmdbId ?? '',
+                title: movie.title.replace(/!HS|!HE/g, '').trim() ?? '',
+                director: movie.directors?.director?.[0]?.directorNm ?? '',
+                releaseDate: movie.repRlsDate ?? '',
+                poster: movie.posters?.split('|')?.[0] ?? null,
+                stills: movie.stlls?.split('|') ?? [],
+                plot: movie.plots?.plot?.[0]?.plotText ?? '',
+                genre: movie.genre ?? '',
+            }));
+        } catch (error) {
+            throw new Error(`Failed to fetch movies: ${error.message}`);
+        }
+    }
+
+    async saveOrFindMovie(movieDto: CreateMovieDto): Promise<any> {
+        const existingMovie = await this.movieRepository.findOneBy({ kmdbId: movieDto.kmdbId });
+
+        if (existingMovie) {
+            return existingMovie;
+        }
+
+        const newMovie = this.movieRepository.create(movieDto);
+        return this.movieRepository.save(newMovie);
+    }
+
+    async findMovieById(id: number): Promise<Movie> {
+        const movie = await this.movieRepository.findOne({
+            where: { id },
+            relations: ['posts'],
+        });
+
+        if (!movie) {
+            throw new Error(`Movie with ID ${id} not found`);
+        }
+
+        return movie;
+    }
+}

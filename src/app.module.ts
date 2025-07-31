@@ -5,8 +5,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
-import { PostModule } from './post/post.module';
-import { CommentService } from './comment/comment.service';
+import { PostModule } from './posts/posts.module';
+import { MoviesModule } from './movies/movies.module';
+import { HttpModule } from '@nestjs/axios';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
   imports: [
@@ -22,17 +24,21 @@ import { CommentService } from './comment/comment.service';
         port: +config.get<number>('DB_PORT', 3306),
         username: config.get('DB_USERNAME', 'root'),
         password: config.get('DB_PASSWORD'),
-        database: config.get('DB_NAME'),
+        database: config.get('DB_DATABASE'),
         autoLoadEntities: true,
         synchronize: true,
         logging: true,
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
       }),
     }),
+    HttpModule,
     UsersModule,
+    CommentModule,
     AuthModule,
     PostModule,
+    MoviesModule,
   ],
   controllers: [AppController],
-  providers: [AppService, CommentService],
+  providers: [AppService],
 })
 export class AppModule {}

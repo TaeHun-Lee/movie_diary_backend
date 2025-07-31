@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Post } from 'src/post/entities/post.entity';
+import { Post } from 'src/posts/entities/post.entity';
 import { Repository } from 'typeorm';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { User } from 'src/users/entities/user.entity';
@@ -66,7 +66,7 @@ export class CommentService {
     async findByPost(postId: number): Promise<Comment[]> {
         const comments = await this.commentRepository.find({
             where: { post: { id: postId } },
-            order: { createdAt: 'ASC' },
+            order: { created_at: 'ASC' },
         });
 
         if (!comments || comments.length === 0) {
