@@ -1,29 +1,28 @@
 comments
-+------------+----------+------+-----+-------------------+-----------------------------------------------+
-| Field      | Type     | Null | Key | Default           | Extra                                         |
-+------------+----------+------+-----+-------------------+-----------------------------------------------+
-| id         | int      | NO   | PRI | NULL              | auto_increment                                |
-| content    | text     | NO   |     | NULL              |                                               |
-| created_at | datetime | NO   |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED                             |
-| updated_at | datetime | NO   |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED on update CURRENT_TIMESTAMP |
-| post_id    | int      | YES  | MUL | NULL              |                                               |
-| user_id    | int      | YES  | MUL | NULL              |                                               |
-+------------+----------+------+-----+-------------------+-----------------------------------------------+
++------------+-------------+------+-----+----------------------+--------------------------------------------------+
+| Field      | Type        | Null | Key | Default              | Extra                                            |
++------------+-------------+------+-----+----------------------+--------------------------------------------------+
+| id         | int         | NO   | PRI | NULL                 | auto_increment                                   |
+| content    | text        | NO   |     | NULL                 |                                                  |
+| created_at | datetime(6) | NO   |     | CURRENT_TIMESTAMP(6) | DEFAULT_GENERATED                                |
+| updated_at | datetime(6) | NO   |     | CURRENT_TIMESTAMP(6) | DEFAULT_GENERATED on update CURRENT_TIMESTAMP(6) |
+| postId     | int         | YES  | MUL | NULL                 |                                                  |
+| userId     | int         | YES  | MUL | NULL                 |                                                  |
++------------+-------------+------+-----+----------------------+--------------------------------------------------+
 
 diary_entries
-+------------+--------------+------+-----+-------------------+-----------------------------------------------+
-| Field      | Type         | Null | Key | Default           | Extra                                         |
-+------------+--------------+------+-----+-------------------+-----------------------------------------------+
-| id         | int          | NO   | PRI | NULL              |                                               |
-| user_id    | int          | YES  | MUL | NULL              |                                               |
-| movie_id   | int          | YES  | MUL | NULL              |                                               |
-| post_id    | int          | YES  |     | NULL              |                                               |
-| watched_at | date         | YES  |     | NULL              |                                               |
-| rating     | decimal(2,1) | YES  |     | NULL              |                                               |
-| review     | text         | YES  |     | NULL              |                                               |
-| created_at | datetime     | NO   |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED                             |
-| updated_at | datetime     | NO   |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED on update CURRENT_TIMESTAMP |
-+------------+--------------+------+-----+-------------------+-----------------------------------------------+
++------------+--------------+------+-----+----------------------+--------------------------------------------------+
+| Field      | Type         | Null | Key | Default              | Extra                                            |
++------------+--------------+------+-----+----------------------+--------------------------------------------------+
+| watched_at | date         | YES  |     | NULL                 |                                                  |
+| rating     | decimal(2,1) | YES  |     | NULL                 |                                                  |
+| review     | text         | YES  |     | NULL                 |                                                  |
+| created_at | datetime(6)  | NO   |     | CURRENT_TIMESTAMP(6) | DEFAULT_GENERATED                                |
+| updated_at | datetime(6)  | NO   |     | CURRENT_TIMESTAMP(6) | DEFAULT_GENERATED on update CURRENT_TIMESTAMP(6) |
+| movieId    | int          | NO   | MUL | NULL                 |                                                  |
+| postId     | int          | NO   | MUL | NULL                 |                                                  |
+| id         | int          | NO   | PRI | NULL                 | auto_increment                                   |
++------------+--------------+------+-----+----------------------+--------------------------------------------------+
 
 genres
 +------------+--------------+------+-----+-------------------+-------------------+

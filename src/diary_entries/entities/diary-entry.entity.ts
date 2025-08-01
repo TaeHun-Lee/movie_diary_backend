@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
 import { Movie } from 'src/movies/entities/movie.entity';
 import { Post } from 'src/posts/entities/post.entity';
 
@@ -23,8 +23,10 @@ export class DiaryEntry {
     updated_at: Date;
 
     @ManyToOne(() => Movie, movie => movie.diaryEntries, { nullable: false, eager: true })
+    @JoinColumn({ name: 'movie_id' })
     movie: Movie;
 
-    @ManyToOne(() => Post, post => post.diaryEntries, { nullable: false })
+    @ManyToOne(() => Post, post => post.diaryEntries, { nullable: false, onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'post_id' })
     post: Post;
 }
