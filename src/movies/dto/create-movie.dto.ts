@@ -2,7 +2,7 @@ import { IsString, IsOptional, IsArray } from 'class-validator';
 
 export class CreateMovieDto {
   @IsString()
-  kmdbId: string;
+  docId: string;
 
   @IsString()
   title: string;

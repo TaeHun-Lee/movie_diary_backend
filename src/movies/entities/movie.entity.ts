@@ -7,7 +7,7 @@ export class Movie {
     id: number;
 
     @Column({ unique: true })
-    kmdbId: string;
+    docId: string;
 
     @Column()
     title: string;

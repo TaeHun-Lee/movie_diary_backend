@@ -26,7 +26,7 @@ export class User {
     @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP(6)', onUpdate: 'CURRENT_TIMESTAMP(6)'})
     updated_at: Date;
 
-    @OneToMany(() => Post, post => post.user, { eager: true })
+    @OneToMany(() => Post, post => post.user)
     posts: Post[];
 
     @OneToMany(() => Comment, comment => comment.user)

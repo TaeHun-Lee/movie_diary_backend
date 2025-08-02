@@ -29,7 +29,7 @@ export class MoviesService {
             }
             const results = response.data?.Data?.[0]?.Result ?? [];
             return results.map(movie => ({
-                kmdbId: movie.kmdbId ?? '',
+                docId: movie.DOCID ?? '',
                 title: movie.title.replace(/!HS|!HE/g, '').trim() ?? '',
                 director: movie.directors?.director?.[0]?.directorNm ?? '',
                 releaseDate: movie.repRlsDate ?? '',
@@ -44,7 +44,7 @@ export class MoviesService {
     }
 
     async saveOrFindMovie(movieDto: CreateMovieDto): Promise<any> {
-        const existingMovie = await this.movieRepository.findOneBy({ kmdbId: movieDto.kmdbId });
+        const existingMovie = await this.movieRepository.findOneBy({ docId: movieDto.docId });
 
         if (existingMovie) {
             return existingMovie;
