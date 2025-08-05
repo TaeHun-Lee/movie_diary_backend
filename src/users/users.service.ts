@@ -29,10 +29,10 @@ export class UsersService {
     return user;
   }
 
-  findByEmail(email: string) {
-    const user = this.userRepository.findOne({ where: { email } });
+  findByUserId(user_id: string) {
+    const user = this.userRepository.findOne({ where: { user_id } });
     if (!user) {
-      throw new NotFoundException(`User with email not found`);
+      throw new NotFoundException(`User with user_id not found`);
     }
     return user;
   }

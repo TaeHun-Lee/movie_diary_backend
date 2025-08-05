@@ -37,7 +37,7 @@ export class MoviesService {
                 stills: movie.stlls?.split('|') ?? [],
                 plot: movie.plots?.plot?.[0]?.plotText ?? '',
                 genre: movie.genre ?? '',
-            }));
+            })).sort((a, b) => b.releaseDate.localeCompare(a.releaseDate));
         } catch (error) {
             throw new Error(`Failed to fetch movies: ${error.message}`);
         }

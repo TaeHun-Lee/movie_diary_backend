@@ -29,12 +29,12 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
-  @Get('email/:email')
-  @ApiOperation({ summary: 'Get a user by email' })
+  @Get('user_id/:user_id')
+  @ApiOperation({ summary: 'Get a user by user_id' })
   @ApiResponse({ status: 200, description: 'User found.' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  findByEmail(@Param('email') email: string) {
-    return this.usersService.findByEmail(email);
+  findByUserId(@Param('user_id') user_id: string) {
+    return this.usersService.findByUserId(user_id);
   }
 
   @Patch(':id')
