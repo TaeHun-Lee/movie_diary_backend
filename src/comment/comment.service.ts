@@ -64,15 +64,14 @@ export class CommentService {
     }
 
     async findByPost(postId: number): Promise<Comment[]> {
-        const comments = await this.commentRepository.find({
-            where: { post: { id: postId } },
-            order: { created_at: 'ASC' },
-        });
-
-        if (!comments || comments.length === 0) {
+        const post = await this.postRepository.findOneBy({ id: postId });
+        if (!post) {
             throw new NotFoundException('Post not found');
         }
 
-        return comments;
+        return this.commentRepository.find({
+            where: { post: { id: postId } },
+            order: { created_at: 'ASC' },
+        });
     }
 }

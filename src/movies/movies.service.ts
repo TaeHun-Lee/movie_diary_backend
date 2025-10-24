@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
@@ -18,29 +18,34 @@ export class MoviesService {
 
     async searchMovies(title: string): Promise<any> {
         const apiKey = this.configSrvice.get<string>('KMDB_API_KEY');
-        const url = `http://api.koreafilm.or.kr/openapi-data2/wisenut/search_api/search_json2.jsp?collection=kmdb_new2&detail=Y&query=${encodeURIComponent(title)}&ServiceKey=${apiKey}`;
+        const baseUrl = this.configSrvice.get<string>('KMDB_API_URL');
+        const url = `${baseUrl}?collection=kmdb_new2&detail=Y&query=${encodeURIComponent(title)}&ServiceKey=${apiKey}`;
 
         try {
             const response = await firstValueFrom(
                 this.httpService.get(url)
             );
             if (response.status !== 200) {
-                throw new Error(`Failed to fetch movies: ${response.statusText}`);
+                throw new InternalServerErrorException(`Failed to fetch movies: ${response.statusText}`);
             }
             const results = response.data?.Data?.[0]?.Result ?? [];
-            return results.map(movie => ({
-                docId: movie.DOCID ?? '',
-                title: movie.title.replace(/!HS|!HE/g, '').trim() ?? '',
-                director: movie.directors?.director?.[0]?.directorNm ?? '',
-                releaseDate: movie.repRlsDate ?? '',
-                poster: movie.posters?.split('|')?.[0] ?? null,
-                stills: movie.stlls?.split('|') ?? [],
-                plot: movie.plots?.plot?.[0]?.plotText ?? '',
-                genre: movie.genre ?? '',
-            })).sort((a, b) => b.releaseDate.localeCompare(a.releaseDate));
+            return results.map(this._transformMovieData).sort((a, b) => b.releaseDate.localeCompare(a.releaseDate));
         } catch (error) {
-            throw new Error(`Failed to fetch movies: ${error.message}`);
+            throw new InternalServerErrorException(`Failed to fetch movies: ${error.message}`);
         }
+    }
+
+    private _transformMovieData(movie: any) {
+        return {
+            docId: movie.DOCID ?? '',
+            title: movie.title.replace(/!HS|!HE/g, '').trim() ?? '',
+            director: movie.directors?.director?.[0]?.directorNm ?? '',
+            releaseDate: movie.repRlsDate ?? '',
+            poster: movie.posters?.split('|')?.[0] ?? null,
+            stills: movie.stlls?.split('|') ?? [],
+            plot: movie.plots?.plot?.[0]?.plotText ?? '',
+            genre: movie.genre ?? '',
+        };
     }
 
     async saveOrFindMovie(movieDto: CreateMovieDto): Promise<any> {

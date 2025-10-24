@@ -40,11 +40,12 @@ export class UsersController {
   }
 
   @Patch(':id')
+  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Update a user by ID' })
   @ApiResponse({ status: 200, description: 'User updated successfully.' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(id, updateUserDto);
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(+id, updateUserDto);
   }
 
   @Delete(':id')

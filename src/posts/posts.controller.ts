@@ -23,6 +23,11 @@ export class PostController {
     return this.postService.findAll();
   }
 
+  @Get('my')
+  findMyPosts(@UserDecorator() user: User) {
+    return this.postService.findMyPosts(user);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.postService.findOne(+id);

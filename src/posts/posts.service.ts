@@ -75,6 +75,14 @@ export class PostService {
     return post;
   }
 
+  async findMyPosts(user: User): Promise<Post[]> {
+    return this.postRepository.find({
+      where: { user: { id: user.id } },
+      relations: ['user', 'comments', 'diaryEntries'],
+      order: { created_at: 'DESC' },
+    });
+  }
+
   async update(id: number, updatePostDto: UpdatePostDto, user: User): Promise<Post> {
     const post = await this.postRepository.findOne({ where: { id }, relations: ['user', 'diaryEntries'] });
     if (!post) {
