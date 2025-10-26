@@ -1,21 +1,6 @@
 import { Type } from "class-transformer";
-import { IsArray, IsDateString, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min, ValidateNested } from "class-validator";
-
-class DiaryEntryInput {
-  @IsInt()
-  movie_id: number;
-
-  @IsDateString()
-  watched_at: string;
-
-  @IsNumber()
-  @Min(0)
-  @Max(10)
-  rating: number;
-
-  @IsString()
-  review: string;
-}
+import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, Max, Min, ValidateNested } from "class-validator";
+import { CreateMovieDto } from "src/movies/dto/create-movie.dto";
 
 export class CreatePostDto {
     @IsNotEmpty()
@@ -30,8 +15,27 @@ export class CreatePostDto {
     @IsString()
     place?: string;
 
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => DiaryEntryInput)
-    diaryEntries: DiaryEntryInput[];
+    @IsNotEmpty()
+    @IsString()
+    movie_docId: string;
+
+    @IsNotEmpty()
+    @IsDateString()
+    watched_at: string;
+
+    @IsNotEmpty()
+    @IsNumber()
+    @Min(0)
+    @Max(10)
+    rating: number;
+
+    @IsOptional()
+    @IsString()
+    @IsUrl()
+    photo_url?: string;
+
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => CreateMovieDto)
+    movieData?: CreateMovieDto;
 }

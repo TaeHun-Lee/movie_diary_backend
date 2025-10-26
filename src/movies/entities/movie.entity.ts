@@ -1,4 +1,4 @@
-import { DiaryEntry } from "src/diary_entries/entities/diary-entry.entity";
+import { Post } from "src/posts/entities/post.entity";
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity({ name: 'movies' })
@@ -36,7 +36,7 @@ export class Movie {
     @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP(6)', onUpdate: 'CURRENT_TIMESTAMP(6)' })
     updated_at: Date;
 
-    @OneToMany(() => DiaryEntry, diaryEntry => diaryEntry.movie)
-    diaryEntries: DiaryEntry[];
+    @OneToMany(() => Post, post => post.movie)
+    posts: Post[];
 }
     

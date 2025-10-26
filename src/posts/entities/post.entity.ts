@@ -1,7 +1,7 @@
 import { Comment } from "src/comment/entities/comment.entitiy";
-import { DiaryEntry } from "src/diary_entries/entities/diary-entry.entity";
+import { Movie } from "src/movies/entities/movie.entity";
 import { User } from "src/users/entities/user.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity({ name: 'posts' })
 export class Post {
@@ -17,6 +17,15 @@ export class Post {
     @Column({ type: 'varchar', length: 255, nullable: true })
     place?: string;
 
+    @Column({ type: 'date', nullable: true })
+    watched_at: Date;
+
+    @Column({ type: 'decimal', precision: 2, scale: 1, nullable: true })
+    rating: number;
+
+    @Column({ type: 'varchar', length: 2048, nullable: true })
+    photo_url?: string;
+
     @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP(6)' })
     created_at: Date;
 
@@ -27,9 +36,10 @@ export class Post {
     @JoinColumn({ name: 'user_id' })
     user: User;
 
+    @ManyToOne(() => Movie, movie => movie.posts, { nullable: false, eager: true })
+    @JoinColumn({ name: 'movie_id' })
+    movie: Movie;
+
     @OneToMany(() => Comment, (comment) => comment.post, { eager: true, cascade: true })
     comments: Comment[];
-
-    @OneToMany(() => DiaryEntry, diaryEntry => diaryEntry.post, { eager: true, cascade: true })
-    diaryEntries: DiaryEntry[];
 }

@@ -1,12 +1,10 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { User } from 'src/users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from './entities/post.entity';
-import { In, Repository } from 'typeorm';
-import { NotFoundError } from 'rxjs';
-import { DiaryEntry } from 'src/diary_entries/entities/diary-entry.entity';
+import { Repository } from 'typeorm';
 import { Movie } from 'src/movies/entities/movie.entity';
 
 @Injectable()
@@ -14,52 +12,34 @@ export class PostService {
   constructor(
     @InjectRepository(Post)
     private readonly postRepository: Repository<Post>,
-    @InjectRepository(DiaryEntry)
-    private readonly diaryEntryRepository: Repository<DiaryEntry>,
     @InjectRepository(Movie)
     private readonly movieRepository: Repository<Movie>,
   ) {}
   
   async create(createPostDto: CreatePostDto, user: User): Promise<Post> {
-    const { diaryEntries, ...postData } = createPostDto;
+    const { movie_docId, movieData, ...postData } = createPostDto;
 
-    // 영화 존재 여부 검증
-    const movieIds = diaryEntries.map(entry => entry.movie_id);
-    const movies = await this.movieRepository.findBy({
-      id: In(movieIds),
-    });
-    const movieMap = new Map(movies.map(movie => [movie.id, movie]));
+    let movie = await this.movieRepository.findOneBy({ docId: movie_docId });
 
-    const entries = await Promise.all(
-      diaryEntries.map(async (entry) => {
-        const movie = movieMap.get(entry.movie_id);
-        if (!movie) {
-          throw new NotFoundError(`Movie with ID ${entry.movie_id} not found`);
-        }
-        return this.diaryEntryRepository.create({
-          movie,
-          watched_at: new Date(entry.watched_at),
-          rating: entry.rating,
-          review: entry.review,
-        });
-      })
-    );
-
-    const userFilteredDiaryEntries = entries.filter(
-      (diaryEntry) => diaryEntry.post?.user?.id === user.id,
-    );
+    if (!movie) {
+      if (!movieData) {
+        throw new NotFoundException(`Movie with ID ${movie_docId} not found and no movie data provided to create one.`);
+      }
+      const newMovie = this.movieRepository.create(movieData);
+      movie = await this.movieRepository.save(newMovie);
+    }
 
     const post = this.postRepository.create({
       ...postData,
-      user: user,
-      diaryEntries: userFilteredDiaryEntries,
+      user,
+      movie,
     });
     return this.postRepository.save(post);
   }
 
   async findAll(): Promise<Post[]> {
     return this.postRepository.find({
-      relations: ['user', 'comments', 'diaryEntries'],
+      relations: ['user', 'comments', 'movie'],
       order: { created_at: 'DESC' },
     });
   }
@@ -67,10 +47,10 @@ export class PostService {
   async findOne(id: number): Promise<Post> {
     const post = await this.postRepository.findOne({
       where: { id },
-      relations: ['user', 'comments', 'diaryEntries'],
+      relations: ['user', 'comments', 'movie'],
     });
     if (!post) {
-      throw new NotFoundError(`Post with ID ${id} not found`);
+      throw new NotFoundException(`Post with ID ${id} not found`);
     }
     return post;
   }
@@ -78,52 +58,38 @@ export class PostService {
   async findMyPosts(user: User): Promise<Post[]> {
     return this.postRepository.find({
       where: { user: { id: user.id } },
-      relations: ['user', 'comments', 'diaryEntries'],
+      relations: ['user', 'comments', 'movie'],
       order: { created_at: 'DESC' },
     });
   }
 
   async update(id: number, updatePostDto: UpdatePostDto, user: User): Promise<Post> {
-    const post = await this.postRepository.findOne({ where: { id }, relations: ['user', 'diaryEntries'] });
+    const post = await this.postRepository.findOne({ where: { id }, relations: ['user'] });
     if (!post) {
-      throw new NotFoundError(`Post not found`);
+      throw new NotFoundException(`Post not found`);
     }
     if (post.user.id !== user.id) {
       throw new ForbiddenException('Not Authorized');
     }
 
-    if (updatePostDto.title) post.title = updatePostDto.title;
-    if (updatePostDto.content) post.content = updatePostDto.content;
-    if (updatePostDto.place) post.place = updatePostDto.place;
+    // Update fields from updatePostDto
+    Object.assign(post, updatePostDto);
 
-    if (updatePostDto.diaryEntries && updatePostDto.diaryEntries.length > 0) {
-      await this.diaryEntryRepository.remove(post.diaryEntries);
-      const movieIds = updatePostDto.diaryEntries.map(entry => entry.movie_id);
-      const movies = await this.movieRepository.findBy({
-        id: In(movieIds),
-      });
-      const movieMap = new Map(movies.map(movie => [movie.id, movie]));
-      const newEntries = updatePostDto.diaryEntries.map(entry => {
-        let movie = movieMap.get(entry.movie_id);
-        if (!movie) {
-          throw new NotFoundError(`Movie with ID ${entry.movie_id} not found`);
-        }
-        return this.diaryEntryRepository.create({
-          movie,
-          watched_at: new Date(entry.watched_at),
-          rating: entry.rating,
-          review: entry.review,
-        });
-      });
-      post.diaryEntries = await this.diaryEntryRepository.save(newEntries);
+    if (updatePostDto.movie_docId) {
+      const movie = await this.movieRepository.findOneBy({ docId: updatePostDto.movie_docId });
+      if (!movie) {
+        throw new NotFoundException(`Movie with ID ${updatePostDto.movie_docId} not found`);
+      }
+      post.movie = movie;
     }
+
     return this.postRepository.save(post);
   }
 
   async remove(id: number, user: User) {
     const post = await this.postRepository.findOne({ where: { id }, relations: ['user'] });
     if (!post) {
-      throw new NotFoundError(`Post not found`);
+      throw new NotFoundException(`Post not found`);
     }
     if (post.user.id !== user.id) {
       throw new ForbiddenException('Not Authorized');

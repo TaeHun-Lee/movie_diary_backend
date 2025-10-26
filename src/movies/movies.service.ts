@@ -48,6 +48,13 @@ export class MoviesService {
         };
     }
 
+    async getImage(url: string) {
+        const response = await firstValueFrom(
+            this.httpService.get(url, { responseType: 'stream' })
+        );
+        return response.data;
+    }
+
     async saveOrFindMovie(movieDto: CreateMovieDto): Promise<any> {
         const existingMovie = await this.movieRepository.findOneBy({ docId: movieDto.docId });
 
@@ -59,14 +66,14 @@ export class MoviesService {
         return this.movieRepository.save(newMovie);
     }
 
-    async findMovieById(id: number): Promise<Movie> {
+    async findMovieByDocId(docId: string): Promise<Movie> {
         const movie = await this.movieRepository.findOne({
-            where: { id },
+            where: { docId },
             relations: ['posts'],
         });
 
         if (!movie) {
-            throw new Error(`Movie with ID ${id} not found`);
+            throw new Error(`Movie with DOCID ${docId} not found`);
         }
 
         return movie;
