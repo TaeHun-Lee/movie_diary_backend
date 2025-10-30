@@ -5,10 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
-import { PostModule } from './posts/posts.module';
+import { PostsModule } from './posts/posts.module';
 import { MoviesModule } from './movies/movies.module';
 import { HttpModule } from '@nestjs/axios';
 import { CommentModule } from './comment/comment.module';
+import { GenresModule } from './genres/genres.module';
+import { PostLikesModule } from './post-likes/post-likes.module';
+import { PostPhotosModule } from './post-photos/post-photos.module';
 
 @Module({
   imports: [
@@ -35,8 +38,11 @@ import { CommentModule } from './comment/comment.module';
     UsersModule,
     CommentModule,
     AuthModule,
-    PostModule,
+    PostsModule,
     MoviesModule,
+    GenresModule,
+    PostLikesModule,
+    PostPhotosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

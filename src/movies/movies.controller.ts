@@ -11,11 +11,13 @@ export class MoviesController {
     @Get('search')
     @UseGuards(AuthGuard('jwt'))
     @ApiBearerAuth()
-    async search(@Query('title') title: string) {
+    @ApiQuery({ name: 'title', required: true, description: 'The title of the movie to search for.' })
+    @ApiQuery({ name: 'genre', required: false, description: 'The genre to filter movies by.' })
+    async search(@Query('title') title: string, @Query('genre') genre?: string) {
         if (!title) {
             throw new Error('Title query parameter is required');
         }
-        return this.moviesService.searchMovies(title);
+        return this.moviesService.searchMovies(title, genre);
     }
 
     @Get('image')

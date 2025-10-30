@@ -1,5 +1,7 @@
-import { Comment } from "src/comment/entities/comment.entitiy";
+import { Comment } from "src/comment/entities/comment.entity";
 import { Movie } from "src/movies/entities/movie.entity";
+import { PostLike } from "src/post-likes/entities/post-like.entity";
+import { PostPhoto } from "src/post-photos/entities/post-photo.entity";
 import { User } from "src/users/entities/user.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
@@ -23,8 +25,8 @@ export class Post {
     @Column({ type: 'decimal', precision: 2, scale: 1, nullable: true })
     rating: number;
 
-    @Column({ type: 'varchar', length: 2048, nullable: true })
-    photo_url?: string;
+    @Column({ default: 0 })
+    likes_count: number;
 
     @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP(6)' })
     created_at: Date;
@@ -42,4 +44,10 @@ export class Post {
 
     @OneToMany(() => Comment, (comment) => comment.post, { eager: true, cascade: true })
     comments: Comment[];
+
+    @OneToMany(() => PostLike, (postLike) => postLike.post, { cascade: true })
+    likes: PostLike[];
+
+    @OneToMany(() => PostPhoto, (photo) => photo.post, { cascade: true })
+    photos: PostPhoto[];
 }

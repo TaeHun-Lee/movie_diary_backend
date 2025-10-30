@@ -1,5 +1,6 @@
+import { Genre } from "src/genres/entities/genre.entity";
 import { Post } from "src/posts/entities/post.entity";
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity({ name: 'movies' })
 export class Movie {
@@ -27,8 +28,13 @@ export class Movie {
     @Column({ type: 'text', nullable: true })
     plot: string;
 
-    @Column({ nullable: true })
-    genre: string;
+    @ManyToMany(() => Genre, (genre) => genre.movies, { cascade: true })
+    @JoinTable({
+        name: 'movie_genres',
+        joinColumn: { name: 'movie_id', referencedColumnName: 'id' },
+        inverseJoinColumn: { name: 'genre_id', referencedColumnName: 'id' },
+    })
+    genres: Genre[];
 
     @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP(6)' })
     created_at: Date;

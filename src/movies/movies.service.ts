@@ -16,10 +16,13 @@ export class MoviesService {
         private readonly movieRepository: Repository<Movie>
     ) {}
 
-    async searchMovies(title: string): Promise<any> {
+    async searchMovies(title: string, genre?: string): Promise<any> {
         const apiKey = this.configSrvice.get<string>('KMDB_API_KEY');
         const baseUrl = this.configSrvice.get<string>('KMDB_API_URL');
-        const url = `${baseUrl}?collection=kmdb_new2&detail=Y&query=${encodeURIComponent(title)}&ServiceKey=${apiKey}`;
+        let url = `${baseUrl}?collection=kmdb_new2&detail=Y&query=${encodeURIComponent(title)}&ServiceKey=${apiKey}`;
+        if (genre) {
+            url += `&genre=${encodeURIComponent(genre)}`;
+        }
 
         try {
             const response = await firstValueFrom(
@@ -29,7 +32,13 @@ export class MoviesService {
                 throw new InternalServerErrorException(`Failed to fetch movies: ${response.statusText}`);
             }
             const results = response.data?.Data?.[0]?.Result ?? [];
-            return results.map(this._transformMovieData).sort((a, b) => b.releaseDate.localeCompare(a.releaseDate));
+            const movieResults = results.map(this._transformMovieData);
+
+            const filteredResults = genre
+                ? movieResults.filter(movie => movie.genre.includes(genre))
+                : movieResults;
+
+            return filteredResults.sort((a, b) => b.releaseDate.localeCompare(a.releaseDate));
         } catch (error) {
             throw new InternalServerErrorException(`Failed to fetch movies: ${error.message}`);
         }
@@ -55,16 +64,16 @@ export class MoviesService {
         return response.data;
     }
 
-    async saveOrFindMovie(movieDto: CreateMovieDto): Promise<any> {
-        const existingMovie = await this.movieRepository.findOneBy({ docId: movieDto.docId });
+    async findOrCreateMovie(movieDto: CreateMovieDto): Promise<Movie> {
+    const existingMovie = await this.movieRepository.findOneBy({ docId: movieDto.docId });
 
-        if (existingMovie) {
-            return existingMovie;
-        }
-
-        const newMovie = this.movieRepository.create(movieDto);
-        return this.movieRepository.save(newMovie);
+    if (existingMovie) {
+      return existingMovie;
     }
+
+    const newMovie = this.movieRepository.create(movieDto);
+    return this.movieRepository.save(newMovie);
+  }
 
     async findMovieByDocId(docId: string): Promise<Movie> {
         const movie = await this.movieRepository.findOne({

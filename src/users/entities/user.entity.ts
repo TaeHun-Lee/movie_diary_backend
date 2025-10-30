@@ -1,4 +1,5 @@
-import { Comment } from "src/comment/entities/comment.entitiy";
+import { Comment } from "src/comment/entities/comment.entity";
+import { PostLike } from "src/post-likes/entities/post-like.entity";
 import { Post } from "src/posts/entities/post.entity";
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
@@ -30,4 +31,7 @@ export class User {
 
     @OneToMany(() => Comment, comment => comment.user)
     comments: Comment[];
+
+    @OneToMany(() => PostLike, (postLike) => postLike.user)
+    postLikes: PostLike[];
 }

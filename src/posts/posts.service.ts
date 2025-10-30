@@ -4,42 +4,55 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { User } from 'src/users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from './entities/post.entity';
-import { Repository } from 'typeorm';
-import { Movie } from 'src/movies/entities/movie.entity';
+import { DataSource, Repository } from 'typeorm';
+import { MoviesService } from 'src/movies/movies.service';
+import { PostPhotosService } from 'src/post-photos/post-photos.service';
+import { PostPhoto } from 'src/post-photos/entities/post-photo.entity';
 
 @Injectable()
-export class PostService {
+export class PostsService {
   constructor(
     @InjectRepository(Post)
     private readonly postRepository: Repository<Post>,
-    @InjectRepository(Movie)
-    private readonly movieRepository: Repository<Movie>,
+    private readonly moviesService: MoviesService,
+    private readonly postPhotosService: PostPhotosService,
+    private readonly dataSource: DataSource,
   ) {}
-  
+
   async create(createPostDto: CreatePostDto, user: User): Promise<Post> {
-    const { movie_docId, movieData, ...postData } = createPostDto;
+    const { movie: movieData, photo_urls, ...postData } = createPostDto;
 
-    let movie = await this.movieRepository.findOneBy({ docId: movie_docId });
+    const movie = await this.moviesService.findOrCreateMovie(movieData);
 
-    if (!movie) {
-      if (!movieData) {
-        throw new NotFoundException(`Movie with ID ${movie_docId} not found and no movie data provided to create one.`);
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const postToSave = this.postRepository.create({
+        ...postData,
+        user,
+        movie,
+      });
+      const savedPost = await queryRunner.manager.save(postToSave);
+
+      if (photo_urls && photo_urls.length > 0) {
+        await this.postPhotosService.createPhotos(savedPost, photo_urls);
       }
-      const newMovie = this.movieRepository.create(movieData);
-      movie = await this.movieRepository.save(newMovie);
-    }
 
-    const post = this.postRepository.create({
-      ...postData,
-      user,
-      movie,
-    });
-    return this.postRepository.save(post);
+      await queryRunner.commitTransaction();
+      return this.findOne(savedPost.id);
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async findAll(): Promise<Post[]> {
     return this.postRepository.find({
-      relations: ['user', 'comments', 'movie'],
+      relations: ['user', 'comments', 'movie', 'photos'],
       order: { created_at: 'DESC' },
     });
   }
@@ -47,7 +60,7 @@ export class PostService {
   async findOne(id: number): Promise<Post> {
     const post = await this.postRepository.findOne({
       where: { id },
-      relations: ['user', 'comments', 'movie'],
+      relations: ['user', 'comments', 'movie', 'photos'],
     });
     if (!post) {
       throw new NotFoundException(`Post with ID ${id} not found`);
@@ -58,8 +71,25 @@ export class PostService {
   async findMyPosts(user: User): Promise<Post[]> {
     return this.postRepository.find({
       where: { user: { id: user.id } },
-      relations: ['user', 'comments', 'movie'],
+      relations: ['user', 'comments', 'movie', 'photos'],
       order: { created_at: 'DESC' },
+    });
+  }
+
+  async findTop50ByLikes(): Promise<Post[]> {
+    return this.postRepository.find({
+      relations: ['user', 'comments', 'movie', 'photos'],
+      order: { likes_count: 'DESC' },
+      take: 50,
+    });
+  }
+
+  async findTop10ByLikesForMovie(movieId: number): Promise<Post[]> {
+    return this.postRepository.find({
+      where: { movie: { id: movieId } },
+      relations: ['user', 'comments', 'movie', 'photos'],
+      order: { likes_count: 'DESC' },
+      take: 10,
     });
   }
 
@@ -72,16 +102,7 @@ export class PostService {
       throw new ForbiddenException('Not Authorized');
     }
 
-    // Update fields from updatePostDto
     Object.assign(post, updatePostDto);
-
-    if (updatePostDto.movie_docId) {
-      const movie = await this.movieRepository.findOneBy({ docId: updatePostDto.movie_docId });
-      if (!movie) {
-        throw new NotFoundException(`Movie with ID ${updatePostDto.movie_docId} not found`);
-      }
-      post.movie = movie;
-    }
 
     return this.postRepository.save(post);
   }

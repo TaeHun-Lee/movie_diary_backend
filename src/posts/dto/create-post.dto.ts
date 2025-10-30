@@ -1,41 +1,50 @@
-import { Type } from "class-transformer";
-import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, Max, Min, ValidateNested } from "class-validator";
-import { CreateMovieDto } from "src/movies/dto/create-movie.dto";
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsDate,
+  IsDateString,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Max,
+  Min,
+  ValidateNested,
+} from 'class-validator';
+import { CreateMovieDto } from '../../movies/dto/create-movie.dto';
 
 export class CreatePostDto {
-    @IsNotEmpty()
-    @IsString()
-    title: string;
+  @IsNotEmpty()
+  @IsString()
+  title: string;
 
-    @IsOptional()
-    @IsString()
-    content?: string;
+  @IsOptional()
+  @IsString()
+  content?: string;
 
-    @IsOptional()
-    @IsString()
-    place?: string;
+  @IsOptional()
+  @IsString()
+  place?: string;
 
-    @IsNotEmpty()
-    @IsString()
-    movie_docId: string;
+  @IsNotEmpty()
+  @Type(() => Date)
+  @IsDate()
+  watched_at: Date;
 
-    @IsNotEmpty()
-    @IsDateString()
-    watched_at: string;
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(0)
+  @Max(10)
+  rating: number;
 
-    @IsNotEmpty()
-    @IsNumber()
-    @Min(0)
-    @Max(10)
-    rating: number;
+  @IsOptional()
+  @IsArray()
+  @IsUrl({}, { each: true })
+  photo_urls?: string[];
 
-    @IsOptional()
-    @IsString()
-    @IsUrl()
-    photo_url?: string;
-
-    @IsOptional()
-    @ValidateNested()
-    @Type(() => CreateMovieDto)
-    movieData?: CreateMovieDto;
+  @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => CreateMovieDto)
+  movie: CreateMovieDto;
 }
