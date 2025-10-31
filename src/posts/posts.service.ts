@@ -72,7 +72,7 @@ export class PostsService {
     return this.postRepository.find({
       where: { user: { id: user.id } },
       relations: ['user', 'comments', 'movie', 'photos'],
-      order: { created_at: 'DESC' },
+      order: { updated_at: 'DESC' },
     });
   }
 
@@ -87,6 +87,19 @@ export class PostsService {
   async findTop10ByLikesForMovie(movieId: number): Promise<Post[]> {
     return this.postRepository.find({
       where: { movie: { id: movieId } },
+      relations: ['user', 'comments', 'movie', 'photos'],
+      order: { likes_count: 'DESC' },
+      take: 10,
+    });
+  }
+
+  async findTop10ByLikesForMovieDocId(docId: string): Promise<Post[]> {
+    const movie = await this.moviesService.findMovieByDocId(docId);
+    if (!movie) {
+      throw new NotFoundException(`Movie with docId ${docId} not found`);
+    }
+    return this.postRepository.find({
+      where: { movie: { id: movie.id } },
       relations: ['user', 'comments', 'movie', 'photos'],
       order: { likes_count: 'DESC' },
       take: 10,

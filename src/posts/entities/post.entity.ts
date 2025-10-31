@@ -20,9 +20,9 @@ export class Post {
     place?: string;
 
     @Column({ type: 'date', nullable: true })
-    watched_at: Date;
+    watched_at?: Date | null;
 
-    @Column({ type: 'decimal', precision: 2, scale: 1, nullable: true })
+    @Column({ type: 'decimal', precision: 3, scale: 1, nullable: true })
     rating: number;
 
     @Column({ default: 0 })

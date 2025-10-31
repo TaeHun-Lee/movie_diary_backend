@@ -38,6 +38,11 @@ export class PostsController {
     return this.postsService.findTop10ByLikesForMovie(+movieId);
   }
 
+  @Get('movie/doc/:docId/popular')
+  findTop10ForMovieByDocId(@Param('docId') docId: string) {
+    return this.postsService.findTop10ByLikesForMovieDocId(docId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.postsService.findOne(+id);

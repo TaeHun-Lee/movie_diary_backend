@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
@@ -82,7 +82,7 @@ export class MoviesService {
         });
 
         if (!movie) {
-            throw new Error(`Movie with DOCID ${docId} not found`);
+            throw new NotFoundException(`Movie with DOCID ${docId} not found`);
         }
 
         return movie;

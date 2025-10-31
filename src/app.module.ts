@@ -28,6 +28,7 @@ import { PostPhotosModule } from './post-photos/post-photos.module';
         username: config.get('DB_USERNAME', 'root'),
         password: config.get('DB_PASSWORD'),
         database: config.get('DB_DATABASE'),
+        timezone: 'Asia/Seoul',
         autoLoadEntities: true,
         synchronize: true,
         logging: true,
