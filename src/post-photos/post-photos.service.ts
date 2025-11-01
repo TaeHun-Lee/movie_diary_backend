@@ -12,7 +12,7 @@ export class PostPhotosService {
   ) {}
 
   async createPhotos(post: Post, photoUrls: string[]): Promise<PostPhoto[]> {
-    const photos = photoUrls.map(url => {
+    const photos = photoUrls.map((url) => {
       const photo = this.postPhotoRepository.create({
         photo_url: url,
         post: post,

@@ -1,4 +1,3 @@
-
 import { Movie } from 'src/movies/entities/movie.entity';
 import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 

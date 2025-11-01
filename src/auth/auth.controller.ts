@@ -1,4 +1,11 @@
-import { Controller, Post, Body, UseGuards, Request, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  Get,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -22,8 +29,7 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @Get('me')
-  getProfile(@Request() req) {
-    console.log(req.user)
+  getProfile(@Request() req: { user: { user_id: string; nickname: string } }) {
     return {
       user_id: req.user.user_id,
       nickname: req.user.nickname,

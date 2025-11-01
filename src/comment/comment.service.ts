@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from 'src/posts/entities/post.entity';
 import { Repository } from 'typeorm';
@@ -8,70 +12,74 @@ import { Comment } from './entities/comment.entity';
 
 @Injectable()
 export class CommentService {
-    constructor(
-        @InjectRepository(Comment)
-        private commentRepository: Repository<Comment>,
+  constructor(
+    @InjectRepository(Comment)
+    private commentRepository: Repository<Comment>,
 
-        @InjectRepository(Post)
-        private postRepository: Repository<Post>,
-    ) {}
+    @InjectRepository(Post)
+    private postRepository: Repository<Post>,
+  ) {}
 
-    async create(createDto: CreateCommentDto, user: User): Promise<Comment> {
-        const post = await this.postRepository.findOneBy({ id: createDto.postId });
-        if (!post) {
-            throw new NotFoundException('Post not found');
-        }
-
-        const comment = this.commentRepository.create({
-            ...createDto,
-            user,
-            post,
-        });
-
-        return this.commentRepository.save(comment);
+  async create(createDto: CreateCommentDto, user: User): Promise<Comment> {
+    const post = await this.postRepository.findOneBy({ id: createDto.postId });
+    if (!post) {
+      throw new NotFoundException('Post not found');
     }
 
-    async update(commentId: number, updateDto: CreateCommentDto, user: User): Promise<Comment> {
-        const comment = await this.commentRepository.findOne({
-            where: { id: commentId },
-            relations: ['user'],
-        });
+    const comment = this.commentRepository.create({
+      ...createDto,
+      user,
+      post,
+    });
 
-        if (!comment) {
-            throw new NotFoundException('Comment not found');
-        }
+    return this.commentRepository.save(comment);
+  }
 
-        if (comment.user.id !== user.id) {
-            throw new ForbiddenException('Not Authorized');
-        }
+  async update(
+    commentId: number,
+    updateDto: CreateCommentDto,
+    user: User,
+  ): Promise<Comment> {
+    const comment = await this.commentRepository.findOne({
+      where: { id: commentId },
+      relations: ['user'],
+    });
 
-        Object.assign(comment, updateDto);
-        return this.commentRepository.save(comment);
+    if (!comment) {
+      throw new NotFoundException('Comment not found');
     }
 
-    async delete(commentId: number, user: User): Promise<void> {
-        const comment = await this.commentRepository.findOne({
-            where: { id: commentId },
-            relations: ['user'],
-        });
-        if (!comment) {
-            throw new NotFoundException('Comment not found');
-        }
-        if (comment.user.id !== user.id) {
-            throw new ForbiddenException('Not Authorized');
-        }
-        await this.commentRepository.remove(comment);
+    if (comment.user.id !== user.id) {
+      throw new ForbiddenException('Not Authorized');
     }
 
-    async findByPost(postId: number): Promise<Comment[]> {
-        const post = await this.postRepository.findOneBy({ id: postId });
-        if (!post) {
-            throw new NotFoundException('Post not found');
-        }
+    Object.assign(comment, updateDto);
+    return this.commentRepository.save(comment);
+  }
 
-        return this.commentRepository.find({
-            where: { post: { id: postId } },
-            order: { created_at: 'ASC' },
-        });
+  async delete(commentId: number, user: User): Promise<void> {
+    const comment = await this.commentRepository.findOne({
+      where: { id: commentId },
+      relations: ['user'],
+    });
+    if (!comment) {
+      throw new NotFoundException('Comment not found');
     }
+    if (comment.user.id !== user.id) {
+      throw new ForbiddenException('Not Authorized');
+    }
+    await this.commentRepository.remove(comment);
+  }
+
+  async findByPost(postId: number): Promise<Comment[]> {
+    const post = await this.postRepository.findOneBy({ id: postId });
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    return this.commentRepository.find({
+      where: { post: { id: postId } },
+      order: { created_at: 'ASC' },
+    });
+  }
 }

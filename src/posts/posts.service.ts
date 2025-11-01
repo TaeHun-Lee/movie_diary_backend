@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { User } from 'src/users/entities/user.entity';
@@ -7,7 +11,6 @@ import { Post } from './entities/post.entity';
 import { DataSource, Repository } from 'typeorm';
 import { MoviesService } from 'src/movies/movies.service';
 import { PostPhotosService } from 'src/post-photos/post-photos.service';
-import { PostPhoto } from 'src/post-photos/entities/post-photo.entity';
 
 @Injectable()
 export class PostsService {
@@ -106,8 +109,15 @@ export class PostsService {
     });
   }
 
-  async update(id: number, updatePostDto: UpdatePostDto, user: User): Promise<Post> {
-    const post = await this.postRepository.findOne({ where: { id }, relations: ['user'] });
+  async update(
+    id: number,
+    updatePostDto: UpdatePostDto,
+    user: User,
+  ): Promise<Post> {
+    const post = await this.postRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
     if (!post) {
       throw new NotFoundException(`Post not found`);
     }
@@ -121,7 +131,10 @@ export class PostsService {
   }
 
   async remove(id: number, user: User) {
-    const post = await this.postRepository.findOne({ where: { id }, relations: ['user'] });
+    const post = await this.postRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
     if (!post) {
       throw new NotFoundException(`Post not found`);
     }

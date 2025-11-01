@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -31,8 +32,12 @@ export class AuthService {
     return this.getToken(user);
   }
 
-  getToken(user: any) {
-    const payload = { sub: user.id, user_id: user.user_id, nickname: user.nickname };
+  getToken(user: User) {
+    const payload = {
+      sub: user.id,
+      user_id: user.user_id,
+      nickname: user.nickname,
+    };
     return {
       access_token: this.jwtService.sign(payload),
     };

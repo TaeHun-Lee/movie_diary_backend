@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,11 +12,15 @@ async function bootstrap() {
     credentials: true,
   });
 
-  app.useGlobalPipes(new ValidationPipe({
-    transform: true,            // payload를 DTO 클래스 인스턴스로 변환
-    whitelist: true,            // DTO에 정의된 값만 허용
-    forbidNonWhitelisted: true, // 정의되지 않은 값이 있으면 에러
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true, // payload를 DTO 클래스 인스턴스로 변환
+      whitelist: true, // DTO에 정의된 값만 허용
+      forbidNonWhitelisted: true, // 정의되지 않은 값이 있으면 에러
+    }),
+  );
+
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   const config = new DocumentBuilder()
     .setTitle('Movie Diary API')
@@ -28,4 +33,4 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+void bootstrap();

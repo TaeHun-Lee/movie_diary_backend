@@ -1,15 +1,14 @@
 import { Type } from 'class-transformer';
 import {
-  IsArray,
-  IsDate,
-  IsDateString,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
   IsString,
-  IsUrl,
-  Max,
+  IsNotEmpty,
+  IsOptional,
+  IsNumber,
   Min,
+  Max,
+  IsDate,
+  IsArray,
+  IsUrl,
   ValidateNested,
 } from 'class-validator';
 import { CreateMovieDto } from '../../movies/dto/create-movie.dto';
