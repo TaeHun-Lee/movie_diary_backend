@@ -15,6 +15,7 @@ import {
   KmdbMovieResult,
 } from './dto/kmdb-movie-response.dto';
 import * as stream from 'stream';
+import { GenresService } from 'src/genres/genres.service';
 
 @Injectable()
 export class MoviesService {
@@ -23,6 +24,7 @@ export class MoviesService {
     private readonly configSrvice: ConfigService,
     @InjectRepository(Movie)
     private readonly movieRepository: Repository<Movie>,
+    private readonly genresService: GenresService,
   ) {}
 
   async searchMovies(
@@ -51,7 +53,7 @@ export class MoviesService {
       const movieResults = results.map(this._transformMovieData);
 
       const filteredResults = genre
-        ? movieResults.filter((movie) => movie.genre.includes(genre))
+        ? movieResults.filter((movie) => movie.genres.includes(genre))
         : movieResults;
 
       return filteredResults.sort((a, b) =>
@@ -74,7 +76,7 @@ export class MoviesService {
       poster: movie.posters?.split('|')?.[0] ?? null,
       stills: movie.stlls?.split('|') ?? [],
       plot: movie.plots?.plot?.[0]?.plotText ?? '',
-      genre: movie.genre ?? '',
+      genres: movie.genre?.split(',').map((g) => g.trim()) ?? [],
     };
   };
 
@@ -94,7 +96,13 @@ export class MoviesService {
       return existingMovie;
     }
 
-    const newMovie = this.movieRepository.create(movieDto);
+    const { genres: genreNames, ...restOfMovieData } = movieDto;
+    const genres = await this.genresService.findOrCreateGenres(genreNames ?? []);
+
+    const newMovie = this.movieRepository.create({
+      ...restOfMovieData,
+      genres,
+    });
     return this.movieRepository.save(newMovie);
   }
 

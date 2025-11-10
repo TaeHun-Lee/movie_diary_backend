@@ -22,6 +22,16 @@ export class PostsService {
     private readonly dataSource: DataSource,
   ) {}
 
+  private getPostsQueryBuilder() {
+    return this.postRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.user', 'user')
+      .leftJoinAndSelect('post.comments', 'comments')
+      .leftJoinAndSelect('post.movie', 'movie')
+      .leftJoinAndSelect('movie.genres', 'genres')
+      .leftJoinAndSelect('post.photos', 'photos');
+  }
+
   async create(createPostDto: CreatePostDto, user: User): Promise<Post> {
     const { movie: movieData, photo_urls, ...postData } = createPostDto;
 
@@ -54,17 +64,15 @@ export class PostsService {
   }
 
   async findAll(): Promise<Post[]> {
-    return this.postRepository.find({
-      relations: ['user', 'comments', 'movie', 'photos'],
-      order: { created_at: 'DESC' },
-    });
+    return this.getPostsQueryBuilder()
+      .orderBy('post.created_at', 'DESC')
+      .getMany();
   }
 
   async findOne(id: number): Promise<Post> {
-    const post = await this.postRepository.findOne({
-      where: { id },
-      relations: ['user', 'comments', 'movie', 'photos'],
-    });
+    const post = await this.getPostsQueryBuilder()
+      .where('post.id = :id', { id })
+      .getOne();
     if (!post) {
       throw new NotFoundException(`Post with ID ${id} not found`);
     }
@@ -72,28 +80,25 @@ export class PostsService {
   }
 
   async findMyPosts(user: User): Promise<Post[]> {
-    return this.postRepository.find({
-      where: { user: { id: user.id } },
-      relations: ['user', 'comments', 'movie', 'photos'],
-      order: { updated_at: 'DESC' },
-    });
+    return this.getPostsQueryBuilder()
+      .where('post.user.id = :userId', { userId: user.id })
+      .orderBy('post.updated_at', 'DESC')
+      .getMany();
   }
 
   async findTop50ByLikes(): Promise<Post[]> {
-    return this.postRepository.find({
-      relations: ['user', 'comments', 'movie', 'photos'],
-      order: { likes_count: 'DESC' },
-      take: 50,
-    });
+    return this.getPostsQueryBuilder()
+      .orderBy('post.likes_count', 'DESC')
+      .take(50)
+      .getMany();
   }
 
   async findTop10ByLikesForMovie(movieId: number): Promise<Post[]> {
-    return this.postRepository.find({
-      where: { movie: { id: movieId } },
-      relations: ['user', 'comments', 'movie', 'photos'],
-      order: { likes_count: 'DESC' },
-      take: 10,
-    });
+    return this.getPostsQueryBuilder()
+      .where('post.movie.id = :movieId', { movieId })
+      .orderBy('post.likes_count', 'DESC')
+      .take(10)
+      .getMany();
   }
 
   async findTop10ByLikesForMovieDocId(docId: string): Promise<Post[]> {
@@ -101,12 +106,11 @@ export class PostsService {
     if (!movie) {
       throw new NotFoundException(`Movie with docId ${docId} not found`);
     }
-    return this.postRepository.find({
-      where: { movie: { id: movie.id } },
-      relations: ['user', 'comments', 'movie', 'photos'],
-      order: { likes_count: 'DESC' },
-      take: 10,
-    });
+    return this.getPostsQueryBuilder()
+      .where('post.movie.id = :movieId', { movieId: movie.id })
+      .orderBy('post.likes_count', 'DESC')
+      .take(10)
+      .getMany();
   }
 
   async update(
@@ -141,6 +145,7 @@ export class PostsService {
     if (post.user.id !== user.id) {
       throw new ForbiddenException('Not Authorized');
     }
-    return this.postRepository.remove(post);
+    await this.postRepository.softRemove(post);
+    return { message: `Post with ID ${id} has been successfully deleted.` };
   }
 }

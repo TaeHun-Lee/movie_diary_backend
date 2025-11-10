@@ -27,7 +27,8 @@ export class CreateMovieDto {
   @IsString()
   plot?: string;
 
+  @IsArray()
+  @IsString({ each: true })
   @IsOptional()
-  @IsString()
-  genre?: string;
+  genres?: string[];
 }
