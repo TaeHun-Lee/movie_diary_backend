@@ -38,6 +38,10 @@ export class Post {
   @Column({ default: 0 })
   likes_count: number;
 
+  @Column({ default: false })
+  is_spoiler: boolean;
+
+
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP(6)' })
   created_at: Date;
 
@@ -51,7 +55,10 @@ export class Post {
   @DeleteDateColumn({ type: 'datetime', nullable: true })
   deleted_at: Date | null;
 
-  @ManyToOne(() => User, (user) => user.posts, { nullable: false })
+  @ManyToOne(() => User, (user) => user.posts, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'user_id' })
   user: User;
 

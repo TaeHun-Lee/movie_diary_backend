@@ -24,6 +24,16 @@ export class User {
   @Column({ type: 'varchar', length: 50 })
   nickname: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  security_question: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  security_answer: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  profile_image: string;
+
+
   @Column({
     type: 'enum',
     enum: ['USER', 'ADMIN'],

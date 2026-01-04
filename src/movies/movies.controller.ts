@@ -14,7 +14,7 @@ import * as stream from 'stream';
 
 @Controller('movies')
 export class MoviesController {
-  constructor(private readonly moviesService: MoviesService) {}
+  constructor(private readonly moviesService: MoviesService) { }
 
   @Get('search')
   @UseGuards(AuthGuard('jwt'))
@@ -29,11 +29,20 @@ export class MoviesController {
     required: false,
     description: 'The genre to filter movies by.',
   })
-  async search(@Query('title') title: string, @Query('genre') genre?: string) {
+  @ApiQuery({
+    name: 'startCount',
+    required: false,
+    description: 'The starting index for pagination (default: 0).',
+  })
+  async search(
+    @Query('title') title: string,
+    @Query('genre') genre?: string,
+    @Query('startCount') startCount?: number,
+  ) {
     if (!title) {
       throw new BadRequestException('Title query parameter is required');
     }
-    return this.moviesService.searchMovies(title, genre);
+    return this.moviesService.searchMovies(title, genre, startCount);
   }
 
   @Get('image')

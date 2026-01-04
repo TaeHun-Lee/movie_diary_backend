@@ -20,7 +20,7 @@ import { User } from 'src/users/entities/user.entity';
 @UseGuards(AuthGuard('jwt'))
 @ApiBearerAuth()
 export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
+  constructor(private readonly postsService: PostsService) { }
 
   @Post()
   create(@Body() createPostDto: CreatePostDto, @UserDecorator() user: User) {
@@ -47,9 +47,12 @@ export class PostsController {
     return this.postsService.findTop10ByLikesForMovie(+movieId);
   }
 
-  @Get('movie/doc/:docId/popular')
-  findTop10ForMovieByDocId(@Param('docId') docId: string) {
-    return this.postsService.findTop10ByLikesForMovieDocId(docId);
+  @Get('movie/doc/:docId/my-reviews')
+  findMyReviewsByDocId(
+    @Param('docId') docId: string,
+    @UserDecorator() user: User,
+  ) {
+    return this.postsService.findMyPostsByMovieDocId(docId, user);
   }
 
   @Get(':id')

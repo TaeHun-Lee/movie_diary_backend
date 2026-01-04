@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -12,6 +14,8 @@ import { CommentModule } from './comment/comment.module';
 import { GenresModule } from './genres/genres.module';
 import { PostLikesModule } from './post-likes/post-likes.module';
 import { PostPhotosModule } from './post-photos/post-photos.module';
+import { UploadModule } from './upload/upload.module';
+import { PersonalDiaryModule } from './personal-diary/personal-diary.module';
 
 @Module({
   imports: [
@@ -44,8 +48,14 @@ import { PostPhotosModule } from './post-photos/post-photos.module';
     GenresModule,
     PostLikesModule,
     PostPhotosModule,
+    UploadModule,
+    PersonalDiaryModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

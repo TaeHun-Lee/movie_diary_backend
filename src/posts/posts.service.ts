@@ -11,6 +11,7 @@ import { Post } from './entities/post.entity';
 import { DataSource, Repository } from 'typeorm';
 import { MoviesService } from 'src/movies/movies.service';
 import { PostPhotosService } from 'src/post-photos/post-photos.service';
+import { PostPhoto } from 'src/post-photos/entities/post-photo.entity';
 
 @Injectable()
 export class PostsService {
@@ -20,7 +21,7 @@ export class PostsService {
     private readonly moviesService: MoviesService,
     private readonly postPhotosService: PostPhotosService,
     private readonly dataSource: DataSource,
-  ) {}
+  ) { }
 
   private getPostsQueryBuilder() {
     return this.postRepository
@@ -50,7 +51,13 @@ export class PostsService {
       const savedPost = await queryRunner.manager.save(postToSave);
 
       if (photo_urls && photo_urls.length > 0) {
-        await this.postPhotosService.createPhotos(savedPost, photo_urls);
+        const photos = photo_urls.map((url) =>
+          queryRunner.manager.create(PostPhoto, {
+            photo_url: url,
+            post: savedPost,
+          }),
+        );
+        await queryRunner.manager.save(photos);
       }
 
       await queryRunner.commitTransaction();
@@ -101,15 +108,15 @@ export class PostsService {
       .getMany();
   }
 
-  async findTop10ByLikesForMovieDocId(docId: string): Promise<Post[]> {
+  async findMyPostsByMovieDocId(docId: string, user: User): Promise<Post[]> {
     const movie = await this.moviesService.findMovieByDocId(docId);
     if (!movie) {
-      throw new NotFoundException(`Movie with docId ${docId} not found`);
+      return []; // Return empty if movie doesn't exist yet (no posts)
     }
     return this.getPostsQueryBuilder()
       .where('post.movie.id = :movieId', { movieId: movie.id })
-      .orderBy('post.likes_count', 'DESC')
-      .take(10)
+      .andWhere('post.user.id = :userId', { userId: user.id })
+      .orderBy('post.created_at', 'DESC')
       .getMany();
   }
 
@@ -120,7 +127,7 @@ export class PostsService {
   ): Promise<Post> {
     const post = await this.postRepository.findOne({
       where: { id },
-      relations: ['user'],
+      relations: ['user', 'photos'],
     });
     if (!post) {
       throw new NotFoundException(`Post not found`);
@@ -129,15 +136,34 @@ export class PostsService {
       throw new ForbiddenException('Not Authorized');
     }
 
-    Object.assign(post, updatePostDto);
+    const { photo_urls, ...updateData } = updatePostDto;
 
-    return this.postRepository.save(post);
+    Object.assign(post, updateData);
+
+    const savedPost = await this.postRepository.save(post);
+
+    if (photo_urls) {
+      // Find photos that are in DB but NOT in the new list (to be deleted)
+      const existingUrls = post.photos.map((p) => p.photo_url);
+      const toDelete = existingUrls.filter((url) => !photo_urls.includes(url));
+
+      if (toDelete.length > 0) {
+        await this.postPhotosService.deletePhysicalFiles(toDelete);
+      }
+
+      await this.postPhotosService.deleteByPostId(id);
+      if (photo_urls.length > 0) {
+        await this.postPhotosService.createPhotos(savedPost, photo_urls);
+      }
+    }
+
+    return this.findOne(savedPost.id);
   }
 
   async remove(id: number, user: User) {
     const post = await this.postRepository.findOne({
       where: { id },
-      relations: ['user'],
+      relations: ['user', 'photos'],
     });
     if (!post) {
       throw new NotFoundException(`Post not found`);
@@ -145,6 +171,19 @@ export class PostsService {
     if (post.user.id !== user.id) {
       throw new ForbiddenException('Not Authorized');
     }
+
+    // Delete physical files
+    if (post.photos && post.photos.length > 0) {
+      const urls = post.photos.map((p) => p.photo_url);
+      await this.postPhotosService.deletePhysicalFiles(urls);
+
+      // Delete photo records from DB (Hard Delete) to avoid soft-remove cascade error
+      await this.postPhotosService.deleteByPostId(id);
+
+      // Detach photos from the post object in memory so softRemove doesn't try to cascade
+      post.photos = [];
+    }
+
     await this.postRepository.softRemove(post);
     return { message: `Post with ID ${id} has been successfully deleted.` };
   }
