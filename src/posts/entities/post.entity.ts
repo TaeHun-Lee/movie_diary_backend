@@ -1,6 +1,4 @@
-import { Comment } from 'src/comment/entities/comment.entity';
 import { Movie } from 'src/movies/entities/movie.entity';
-import { PostLike } from 'src/post-likes/entities/post-like.entity';
 import { PostPhoto } from 'src/post-photos/entities/post-photo.entity';
 import { User } from 'src/users/entities/user.entity';
 import {
@@ -68,15 +66,6 @@ export class Post {
   })
   @JoinColumn({ name: 'movie_id' })
   movie: Movie;
-
-  @OneToMany(() => Comment, (comment) => comment.post, {
-    eager: true,
-    cascade: true,
-  })
-  comments: Comment[];
-
-  @OneToMany(() => PostLike, (postLike) => postLike.post, { cascade: true })
-  likes: PostLike[];
 
   @OneToMany(() => PostPhoto, (photo) => photo.post, { cascade: true })
   photos: PostPhoto[];

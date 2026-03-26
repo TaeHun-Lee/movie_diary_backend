@@ -27,7 +27,6 @@ export class PostsService {
     return this.postRepository
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.user', 'user')
-      .leftJoinAndSelect('post.comments', 'comments')
       .leftJoinAndSelect('post.movie', 'movie')
       .leftJoinAndSelect('movie.genres', 'genres')
       .leftJoinAndSelect('post.photos', 'photos');
@@ -93,20 +92,6 @@ export class PostsService {
       .getMany();
   }
 
-  async findTop50ByLikes(): Promise<Post[]> {
-    return this.getPostsQueryBuilder()
-      .orderBy('post.likes_count', 'DESC')
-      .take(50)
-      .getMany();
-  }
-
-  async findTop10ByLikesForMovie(movieId: number): Promise<Post[]> {
-    return this.getPostsQueryBuilder()
-      .where('post.movie.id = :movieId', { movieId })
-      .orderBy('post.likes_count', 'DESC')
-      .take(10)
-      .getMany();
-  }
 
   async findMyPostsByMovieDocId(docId: string, user: User): Promise<Post[]> {
     const movie = await this.moviesService.findMovieByDocId(docId);

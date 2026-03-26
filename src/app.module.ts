@@ -10,9 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { PostsModule } from './posts/posts.module';
 import { MoviesModule } from './movies/movies.module';
 import { HttpModule } from '@nestjs/axios';
-import { CommentModule } from './comment/comment.module';
 import { GenresModule } from './genres/genres.module';
-import { PostLikesModule } from './post-likes/post-likes.module';
 import { PostPhotosModule } from './post-photos/post-photos.module';
 import { UploadModule } from './upload/upload.module';
 import { PersonalDiaryModule } from './personal-diary/personal-diary.module';
@@ -41,12 +39,10 @@ import { PersonalDiaryModule } from './personal-diary/personal-diary.module';
     }),
     HttpModule,
     UsersModule,
-    CommentModule,
     AuthModule,
     PostsModule,
     MoviesModule,
     GenresModule,
-    PostLikesModule,
     PostPhotosModule,
     UploadModule,
     PersonalDiaryModule,

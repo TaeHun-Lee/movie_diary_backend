@@ -37,15 +37,6 @@ export class PostsController {
     return this.postsService.findMyPosts(user);
   }
 
-  @Get('popular')
-  findTop50() {
-    return this.postsService.findTop50ByLikes();
-  }
-
-  @Get('movie/:movieId/popular')
-  findTop10ForMovie(@Param('movieId') movieId: string) {
-    return this.postsService.findTop10ByLikesForMovie(+movieId);
-  }
 
   @Get('movie/doc/:docId/my-reviews')
   findMyReviewsByDocId(
