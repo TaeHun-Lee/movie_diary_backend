@@ -1,26 +1,46 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterDto {
-  @ApiProperty({ example: 'sample_user' })
+  @ApiProperty({
+    description: 'The unique ID of the user',
+    example: 'sample_user',
+  })
   @IsString()
   @IsNotEmpty()
   user_id: string;
 
-  @ApiProperty({ example: 'password123' })
+  @ApiProperty({
+    description: 'The password for the account',
+    example: 'password123',
+    minLength: 6,
+  })
+  @IsString()
   @IsNotEmpty()
+  @MinLength(6)
   password: string;
 
-  @ApiProperty({ example: 'Some dude' })
+  @ApiProperty({
+    description: 'The display name of the user',
+    example: 'Some dude',
+  })
   @IsString()
   @IsNotEmpty()
   nickname: string;
 
-  @ApiProperty({ example: '가장 아끼는 보물 1호는?' })
+  @ApiProperty({
+    description: 'A security question for password recovery',
+    example: '가장 아끼는 보물 1호는?',
+  })
   @IsString()
+  @IsNotEmpty()
   security_question: string;
 
-  @ApiProperty({ example: '우리집 강아지' })
+  @ApiProperty({
+    description: 'The answer to the security question',
+    example: '우리집 강아지',
+  })
   @IsString()
+  @IsNotEmpty()
   security_answer: string;
 }

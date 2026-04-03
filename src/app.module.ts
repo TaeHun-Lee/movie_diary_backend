@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { AppController } from './app.controller';
@@ -14,11 +14,27 @@ import { GenresModule } from './genres/genres.module';
 import { PostPhotosModule } from './post-photos/post-photos.module';
 import { UploadModule } from './upload/upload.module';
 import { PersonalDiaryModule } from './personal-diary/personal-diary.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { CommentsModule } from './comments/comments.module';
+import { LikesModule } from './likes/likes.module';
+import { LoggingMiddleware } from './common/middleware/logging.middleware';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
+    }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [
+        {
+          ttl: config.get<number>('THROTTLE_TTL', 60000),
+          limit: config.get<number>('THROTTLE_LIMIT', 60),
+        },
+      ],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -32,8 +48,8 @@ import { PersonalDiaryModule } from './personal-diary/personal-diary.module';
         database: config.get('DB_DATABASE'),
         timezone: 'Asia/Seoul',
         autoLoadEntities: true,
-        synchronize: true,
-        logging: true,
+        synchronize: config.get('NODE_ENV') === 'development',
+        logging: config.get('NODE_ENV') === 'development',
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
       }),
     }),
@@ -48,10 +64,22 @@ import { PersonalDiaryModule } from './personal-diary/personal-diary.module';
     PersonalDiaryModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
-      serveRoot: '/uploads',
+      serveRoot: '/api/v1/uploads',
     }),
+    CommentsModule,
+    LikesModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggingMiddleware).forRoutes('*');
+  }
+}

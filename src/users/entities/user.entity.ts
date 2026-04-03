@@ -1,4 +1,6 @@
-import { Post } from 'src/posts/entities/post.entity';
+import { Post } from '../../posts/entities/post.entity';
+import { Comment } from '../../comments/entities/comment.entity';
+import { Like } from '../../likes/entities/like.entity';
 import {
   Column,
   CreateDateColumn,
@@ -31,6 +33,8 @@ export class User {
   @Column({ type: 'varchar', length: 255, nullable: true })
   profile_image: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  hashed_refresh_token?: string;
 
   @Column({
     type: 'enum',
@@ -52,4 +56,10 @@ export class User {
 
   @OneToMany(() => Post, (post) => post.user)
   posts: Post[];
+
+  @OneToMany(() => Comment, (comment) => comment.user)
+  comments: Comment[];
+
+  @OneToMany(() => Like, (like) => like.user)
+  likes: Like[];
 }

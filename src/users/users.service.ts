@@ -16,7 +16,16 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) { }
 
-  create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto) {
+    if (createUserDto.password) {
+      createUserDto.password = await bcrypt.hash(createUserDto.password, 10);
+    }
+    if (createUserDto.security_answer) {
+      createUserDto.security_answer = await bcrypt.hash(
+        createUserDto.security_answer,
+        10,
+      );
+    }
     const user = this.userRepository.create(createUserDto);
     return this.userRepository.save(user);
   }
@@ -66,6 +75,13 @@ export class UsersService {
 
     if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+    }
+
+    if (updateUserDto.security_answer) {
+      updateUserDto.security_answer = await bcrypt.hash(
+        updateUserDto.security_answer,
+        10,
+      );
     }
 
     Object.assign(user, updateUserDto);

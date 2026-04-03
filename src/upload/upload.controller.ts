@@ -8,7 +8,15 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+    ApiBody,
+    ApiConsumes,
+    ApiOperation,
+    ApiTags,
+    ApiResponse,
+    ApiBadRequestResponse,
+} from '@nestjs/swagger';
+import { ErrorResponseDto } from '../common/dto/error-response.dto';
 
 const storage = diskStorage({
     destination: './uploads',
@@ -21,12 +29,12 @@ const storage = diskStorage({
     },
 });
 
-@ApiTags('uploads')
+@ApiTags('Uploads')
 @Controller('uploads')
 export class UploadController {
     @Post()
     @UseInterceptors(FileInterceptor('file', { storage }))
-    @ApiOperation({ summary: 'Upload a file' })
+    @ApiOperation({ summary: 'Upload an image file' })
     @ApiConsumes('multipart/form-data')
     @ApiBody({
         schema: {
@@ -39,6 +47,8 @@ export class UploadController {
             },
         },
     })
+    @ApiResponse({ status: 201, description: 'File successfully uploaded, returns the file URL' })
+    @ApiBadRequestResponse({ type: ErrorResponseDto })
     uploadFile(@UploadedFile() file: Express.Multer.File) {
         if (!file) {
             throw new BadRequestException('File is required');

@@ -8,19 +8,17 @@ import {
     ManyToOne,
     JoinColumn,
     Unique,
+    Index,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
 @Entity('personal_diary')
-// Unique constraint: one diary entry per user per day?
-// Actually user might want to write multiple. But "date" implies specific date.
-// If I use 'date' column as DATE type, making it unique per user creates a "Daily Log" constraint.
-// I will enforce uniqueness for now to keep it simple (Daily Diary).
 @Unique(['user', 'date'])
 export class PersonalDiary {
     @PrimaryGeneratedColumn()
     id: number;
 
+    @Index()
     @Column({ type: 'date' })
     date: string; // YYYY-MM-DD
 

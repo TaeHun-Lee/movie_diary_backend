@@ -1,5 +1,5 @@
-import { Genre } from 'src/genres/entities/genre.entity';
-import { Post } from 'src/posts/entities/post.entity';
+import { Genre } from '../../genres/entities/genre.entity';
+import { Post } from '../../posts/entities/post.entity';
 import {
   Column,
   CreateDateColumn,

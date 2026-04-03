@@ -11,8 +11,17 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBadRequestResponse,
+  ApiUnauthorizedResponse,
+  ApiNotFoundResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { ErrorResponseDto } from '../common/dto/error-response.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -25,45 +34,56 @@ export class UsersController {
     status: 201,
     description: 'The user has been successfully created.',
   })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
   @Get()
+  @ApiOperation({ summary: 'Get all users' })
+  @ApiResponse({ status: 200, description: 'Return all users' })
   findAll() {
     return this.usersService.findAll();
   }
 
   @Get(':id')
   @UseGuards(AuthGuard('jwt'))
-  @ApiOperation({ summary: 'Get a user by ID' })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get a user by database primary ID' })
   @ApiResponse({ status: 200, description: 'User found.' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  findOne(@Param('id') user_id: string) {
-    return this.usersService.findOne(user_id);
+  @ApiNotFoundResponse({ type: ErrorResponseDto })
+  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
+  findOne(@Param('id') id: string) {
+    return this.usersService.findOne(id);
   }
 
   @Get('user_id/:user_id')
-  @ApiOperation({ summary: 'Get a user by user_id' })
+  @ApiOperation({ summary: 'Get a user by their custom user_id' })
   @ApiResponse({ status: 200, description: 'User found.' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiNotFoundResponse({ type: ErrorResponseDto })
   findByUserId(@Param('user_id') user_id: string) {
     return this.usersService.findByUserId(user_id);
   }
 
   @Patch(':id')
   @UseGuards(AuthGuard('jwt'))
-  @ApiOperation({ summary: 'Update a user by ID' })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update a user by database primary ID' })
   @ApiResponse({ status: 200, description: 'User updated successfully.' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiNotFoundResponse({ type: ErrorResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
+  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(+id, updateUserDto);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a user by ID' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete a user by database primary ID' })
   @ApiResponse({ status: 200, description: 'User deleted successfully.' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiNotFoundResponse({ type: ErrorResponseDto })
+  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
   remove(@Param('id') id: number) {
     return this.usersService.remove(id);
   }

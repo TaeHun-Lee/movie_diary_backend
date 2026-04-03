@@ -1,6 +1,8 @@
-import { Movie } from 'src/movies/entities/movie.entity';
-import { PostPhoto } from 'src/post-photos/entities/post-photo.entity';
-import { User } from 'src/users/entities/user.entity';
+import { Movie } from '../../movies/entities/movie.entity';
+import { PostPhoto } from '../../post-photos/entities/post-photo.entity';
+import { User } from '../../users/entities/user.entity';
+import { Comment } from '../../comments/entities/comment.entity';
+import { Like } from '../../likes/entities/like.entity';
 import {
   Column,
   CreateDateColumn,
@@ -11,6 +13,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  Index,
 } from 'typeorm';
 
 @Entity({ name: 'posts' })
@@ -55,6 +58,7 @@ export class Post {
   @DeleteDateColumn({ type: 'datetime', nullable: true })
   deleted_at: Date | null;
 
+  @Index()
   @ManyToOne(() => User, (user) => user.posts, {
     nullable: false,
     onDelete: 'CASCADE',
@@ -62,6 +66,7 @@ export class Post {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
+  @Index()
   @ManyToOne(() => Movie, (movie) => movie.posts, {
     nullable: false,
     eager: true,
@@ -71,4 +76,10 @@ export class Post {
 
   @OneToMany(() => PostPhoto, (photo) => photo.post, { cascade: true })
   photos: PostPhoto[];
+
+  @OneToMany(() => Comment, (comment) => comment.post)
+  comments: Comment[];
+
+  @OneToMany(() => Like, (like) => like.post)
+  likes: Like[];
 }

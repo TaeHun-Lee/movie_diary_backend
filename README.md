@@ -1,10 +1,70 @@
-# Movie Diary Project
+# Movie Diary - Backend API Server
 
-## 프로젝트 개요
+## 📌 프로젝트 개요
 
-이 프로젝트는 사용자가 영화를 검색하고, 자신의 감상을 기록하는 영화 다이어리 애플리케이션의 백엔드 서버입니다. NestJS 프레임워크를 기반으로 구축되었으며, 사용자 인증, 게시글, 댓글 등 다양한 기능을 API로 제공합니다.
+이 프로젝트는 사용자가 영화를 검색하고, 자신의 감상을 기록하는 영화 다이어리 애플리케이션의 백엔드 서버입니다. **NestJS** 프레임워크를 기반으로 구축되었으며, 사용자 인증, 게시글, 댓글 등 다양한 기능을 REST API로 제공합니다. 데이터베이스는 **MySQL**을 사용하며, ORM으로 **TypeORM**을 채택했습니다.
 
-## 주요 기능 및 모듈
+## ⚙️ 사전 요구사항 (Prerequisites)
+
+- Node.js (v18 이상 권장)
+- npm 또는 yarn
+- MySQL Server
+
+## 🚀 설정 및 실행 방법 (How to Run)
+
+### 1. 패키지 설치
+터미널에서 아래 명령어를 실행하여 필요한 의존성을 설치합니다.
+```bash
+npm install
+```
+
+### 2. 데이터베이스 초기화
+데이터베이스 스키마와 계정을 초기화해야 합니다. 프로젝트에 포함된 `mysql-init.txt` 스크립트를 사용하여 MySQL에서 `movie_diary_db`를 생성하세요.
+```sql
+CREATE DATABASE movie_diary_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+### 3. 환경 변수 설정
+`.env.development.example` 또는 `.env.example` 파일을 복사하여 `.env.development` (개발용) 및 `.env.production` (운영용) 환경 변수 파일을 생성합니다.
+```bash
+cp .env.development.example .env.development
+```
+
+`.env.development` 파일 내용 예시:
+```env
+PORT=3000
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=yourpassword
+DB_NAME=movie_diary_db
+JWT_SECRET=your_jwt_secret_key
+JWT_EXPIRATION=1h
+```
+
+### 4. 마이그레이션 실행 (TypeORM)
+DB 스키마 동기화를 위해 마이그레이션을 실행합니다 (`synchronize: false` 상태).
+```bash
+npm run typeorm:run-migrations
+```
+
+### 5. 프로젝트 실행
+```bash
+# 개발 모드 (watch)
+npm run start:dev
+
+# 운영 모드
+npm run build
+npm run start:prod
+```
+
+## 🧪 테스트 실행 (Testing)
+모든 주요 비즈니스 로직(Auth, Posts, Movies, Comments, Likes)에 대한 단위 테스트가 작성되어 있습니다.
+```bash
+npm run test
+```
+
+## 📦 주요 기능 및 모듈
 
 -   **사용자 인증 (Auth):** JWT를 사용한 회원가입, 로그인, 프로필 조회 기능을 제공합니다.
 -   **사용자 (Users):** 사용자 정보 조회, 수정, 삭제 기능을 담당합니다.

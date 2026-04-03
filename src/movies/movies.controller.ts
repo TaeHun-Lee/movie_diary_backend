@@ -8,10 +8,20 @@ import {
 } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+  ApiResponse,
+  ApiBadRequestResponse,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { Response } from 'express';
 import * as stream from 'stream';
+import { ErrorResponseDto } from '../common/dto/error-response.dto';
 
+@ApiTags('Movies')
 @Controller('movies')
 export class MoviesController {
   constructor(private readonly moviesService: MoviesService) { }
@@ -19,6 +29,7 @@ export class MoviesController {
   @Get('search')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Search for movies via KMDB API' })
   @ApiQuery({
     name: 'title',
     required: true,
@@ -34,6 +45,9 @@ export class MoviesController {
     required: false,
     description: 'The starting index for pagination (default: 0).',
   })
+  @ApiResponse({ status: 200, description: 'Return list of movies' })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
+  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
   async search(
     @Query('title') title: string,
     @Query('genre') genre?: string,
@@ -55,6 +69,8 @@ export class MoviesController {
     required: true,
     description: 'The URL of the image to fetch.',
   })
+  @ApiResponse({ status: 200, description: 'Return the image binary' })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
   async getImage(@Query('url') url: string, @Res() res: Response) {
     if (!url) {
       throw new BadRequestException('URL query parameter is required');

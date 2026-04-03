@@ -145,6 +145,7 @@ export class MoviesService {
       release_date: this.parseReleaseDate(releaseDate),
       poster: poster,
     };
+
     if (existingMovie) {
       // Update existing movie with latest data
       Object.assign(existingMovie, movieDataToSave);

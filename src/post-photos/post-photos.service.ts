@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PostPhoto } from './entities/post-photo.entity';
 import { Repository } from 'typeorm';
-import { Post } from 'src/posts/entities/post.entity';
+import { Post } from '../posts/entities/post.entity';
 import * as fs from 'fs';
 import * as path from 'path';
 

@@ -5,13 +5,14 @@ import {
 } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from './entities/post.entity';
 import { DataSource, Repository } from 'typeorm';
-import { MoviesService } from 'src/movies/movies.service';
-import { PostPhotosService } from 'src/post-photos/post-photos.service';
-import { PostPhoto } from 'src/post-photos/entities/post-photo.entity';
+import { MoviesService } from '../movies/movies.service';
+import { PostPhotosService } from '../post-photos/post-photos.service';
+import { PostPhoto } from '../post-photos/entities/post-photo.entity';
+import { GetPostsQueryDto } from './dto/get-posts-query.dto';
 
 @Injectable()
 export class PostsService {
@@ -70,10 +71,43 @@ export class PostsService {
     }
   }
 
-  async findAll(): Promise<Post[]> {
-    return this.getPostsQueryBuilder()
+  async findAll(queryDto: GetPostsQueryDto): Promise<{ items: Post[]; total: number; page: number; lastPage: number }> {
+    const { page = 1, limit = 10, keyword, genre, dateFrom, dateTo } = queryDto;
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.getPostsQueryBuilder();
+
+    if (keyword) {
+      queryBuilder.andWhere(
+        '(post.title LIKE :keyword OR post.content LIKE :keyword OR movie.title LIKE :keyword)',
+        { keyword: `%${keyword}%` },
+      );
+    }
+
+    if (genre) {
+      queryBuilder.andWhere('genres.name = :genre', { genre });
+    }
+
+    if (dateFrom) {
+      queryBuilder.andWhere('post.created_at >= :dateFrom', { dateFrom });
+    }
+
+    if (dateTo) {
+      queryBuilder.andWhere('post.created_at <= :dateTo', { dateTo });
+    }
+
+    const [items, total] = await queryBuilder
       .orderBy('post.created_at', 'DESC')
-      .getMany();
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      items,
+      total,
+      page,
+      lastPage: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: number): Promise<Post> {
