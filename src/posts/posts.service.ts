@@ -29,7 +29,8 @@ export class PostsService {
       .leftJoinAndSelect('post.user', 'user')
       .leftJoinAndSelect('post.movie', 'movie')
       .leftJoinAndSelect('movie.genres', 'genres')
-      .leftJoinAndSelect('post.photos', 'photos');
+      .leftJoinAndSelect('post.photos', 'photos')
+      .loadRelationCountAndMap('post.comments_count', 'post.comments');
   }
 
   async create(createPostDto: CreatePostDto, user: User): Promise<Post> {

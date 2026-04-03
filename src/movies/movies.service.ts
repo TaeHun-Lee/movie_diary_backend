@@ -15,7 +15,7 @@ import {
   KmdbMovieResult,
 } from './dto/kmdb-movie-response.dto';
 import * as stream from 'stream';
-import { GenresService } from 'src/genres/genres.service';
+import { GenresService } from '../genres/genres.service';
 
 @Injectable()
 export class MoviesService {
@@ -104,6 +104,24 @@ export class MoviesService {
     };
   };
 
+  private parseReleaseDate(value?: string): Date | undefined {
+    if (!value) {
+      return undefined;
+    }
+
+    const valueTrimmed = value.trim();
+    if (!valueTrimmed) {
+      return undefined;
+    }
+
+    const normalized = /^\d{8}$/.test(valueTrimmed)
+      ? `${valueTrimmed.slice(0, 4)}-${valueTrimmed.slice(4, 6)}-${valueTrimmed.slice(6, 8)}`
+      : valueTrimmed;
+
+    const parsed = new Date(normalized);
+    return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+  }
+
   async getImage(url: string): Promise<stream.Readable> {
     const response = await firstValueFrom(
       this.httpService.get(url, { responseType: 'stream' }),
@@ -117,20 +135,25 @@ export class MoviesService {
       relations: ['genres'],
     });
 
-    const { genres: genreNames, ...restOfMovieData } = movieDto;
+    const { genres: genreNames, releaseDate, poster, ...restOfMovieData } = movieDto;
     const genres = await this.genresService.findOrCreateGenres(
       genreNames ?? [],
     );
 
+    const movieDataToSave = {
+      ...restOfMovieData,
+      release_date: this.parseReleaseDate(releaseDate),
+      poster: poster,
+    };
     if (existingMovie) {
       // Update existing movie with latest data
-      Object.assign(existingMovie, restOfMovieData);
+      Object.assign(existingMovie, movieDataToSave);
       existingMovie.genres = genres;
       return this.movieRepository.save(existingMovie);
     }
 
     const newMovie = this.movieRepository.create({
-      ...restOfMovieData,
+      ...movieDataToSave,
       genres,
     });
     return this.movieRepository.save(newMovie);

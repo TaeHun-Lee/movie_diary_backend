@@ -36,6 +36,8 @@ export class Post {
   @Column({ default: 0 })
   likes_count: number;
 
+  comments_count?: number;
+
   @Column({ default: false })
   is_spoiler: boolean;
 
